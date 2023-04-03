@@ -52,15 +52,7 @@ def compute_cost(X, y, theta):
     Returns:
     - J: the cost associated with the current set of parameters (single number).
     """
-
-    J = 0  # We use J for the cost.
-    ###########################################################################
-    # TODO: Implement the MSE cost function.                                  #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    J = np.sum(np.square((X @ theta) - y)) / (2 * X.shape[0])
     return J
 
 
