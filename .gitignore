@@ -1,0 +1,16 @@
+# Machine Learning .gitignore file
+
+# Ignore IDE files
+*.idea/
+
+# Ignore bytcodes
+.pyc
+
+# Ignore cache files
+__pycache__/
+.ipynb_checkpoints/
+
+# Ignore archive files
+.zip
+.rar
+.tar.gz
