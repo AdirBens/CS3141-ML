@@ -219,15 +219,15 @@ def create_square_features(df):
     - df_poly: The input data with polynomial features added as a dataframe
                with appropriate feature names
     """
-
     df_poly = df.copy()
-    ###########################################################################
-    # TODO: Implement the function to add polynomial features                 #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+
+    # create all combination between two different columns
+    df_poly = pd.concat([df_poly, pd.DataFrame({f"{col_a}*{col_b}": df[col_a] * df[col_b]
+                                                for i, col_a in enumerate(df.columns)
+                                                for col_b in df.columns[i:] if col_a != col_b})], axis=1)
+
+    # create self columns product
+    df_poly = pd.concat([df_poly, df.copy().add_suffix("^2") ** 2], axis=1)
     return df_poly
 
 
