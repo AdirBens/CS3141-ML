@@ -102,16 +102,10 @@ def compute_pinv(X, y):
     Returns:
     - pinv_theta: The optimal parameters of your model.
     """
+    X_t = np.transpose(X)
+    pinv = np.linalg.inv(X_t @ X) @ X_t
 
-    pinv_theta = []
-    ###########################################################################
-    # TODO: Implement the pseudoinverse algorithm.                            #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
-    return pinv_theta
+    return pinv @ y
 
 
 def efficient_gradient_descent(X, y, theta, alpha, num_iters):
