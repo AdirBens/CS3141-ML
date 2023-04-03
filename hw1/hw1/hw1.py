@@ -76,16 +76,13 @@ def gradient_descent(X, y, theta, alpha, num_iters):
     - theta: The learned parameters of your model.
     - J_history: the loss value for every iteration.
     """
+    theta = theta.copy()
+    J_history = []
 
-    theta = theta.copy()  # optional: theta outside the function will not change
-    J_history = []  # Use a python list to save the cost value in every iteration
-    ###########################################################################
-    # TODO: Implement the gradient descent optimization algorithm.            #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    for _ in range(num_iters):
+        J_history.append(compute_cost(X, y, theta))
+        theta -= alpha * (((X @ theta) - y) @ X) / X.shape[0]
+
     return theta, J_history
 
 
