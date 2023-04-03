@@ -108,7 +108,7 @@ def compute_pinv(X, y):
     return pinv @ y
 
 
-def efficient_gradient_descent(X, y, theta, alpha, num_iters):
+def efficient_gradient_descent(X, y, theta, alpha, num_iters, threshold=1e-8):
     """
     Learn the parameters of your model using the training set, but stop 
     the learning process once the improvement of the loss value is smaller 
@@ -126,16 +126,15 @@ def efficient_gradient_descent(X, y, theta, alpha, num_iters):
     - theta: The learned parameters of your model.
     - J_history: the loss value for every iteration.
     """
+    theta = theta.copy()
+    J_history = []
 
-    theta = theta.copy()  # optional: theta outside the function will not change
-    J_history = []  # Use a python list to save the cost value in every iteration
-    ###########################################################################
-    # TODO: Implement the efficient gradient descent optimization algorithm.  #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    for _ in range(num_iters):
+        J_history.append(compute_cost(X, y, theta))
+        if (len(J_history) > 1) and ((J_history[-2] - J_history[-1]) < threshold):
+            break
+        else:
+            theta -= alpha * (((X @ theta) - y) @ X) / X.shape[0]
     return theta, J_history
 
 
