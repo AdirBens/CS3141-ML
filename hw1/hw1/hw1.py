@@ -1,13 +1,13 @@
 ###### Your ID ######
-# ID1: 123456789
-# ID2: 987654321
+# ID1: 315388850
 #####################
 
 # imports 
 import numpy as np
 import pandas as pd
 
-def preprocess(X,y):
+
+def preprocess(X, y):
     """
     Perform mean normalization on the features and true labels.
 
@@ -19,14 +19,10 @@ def preprocess(X,y):
     - X: The mean normalized inputs.
     - y: The mean normalized labels.
     """
-    ###########################################################################
-    # TODO: Implement the normalization function.                             #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    X = __normalize_vector(method="mean")(X)
+    y = __normalize_vector(method="mean")(y)
     return X, y
+
 
 def apply_bias_trick(X):
     """
@@ -48,6 +44,7 @@ def apply_bias_trick(X):
     ###########################################################################
     return X
 
+
 def compute_cost(X, y, theta):
     """
     Computes the average squared difference between an observation's actual and
@@ -61,7 +58,7 @@ def compute_cost(X, y, theta):
     Returns:
     - J: the cost associated with the current set of parameters (single number).
     """
-    
+
     J = 0  # We use J for the cost.
     ###########################################################################
     # TODO: Implement the MSE cost function.                                  #
@@ -71,6 +68,7 @@ def compute_cost(X, y, theta):
     #                             END OF YOUR CODE                            #
     ###########################################################################
     return J
+
 
 def gradient_descent(X, y, theta, alpha, num_iters):
     """
@@ -92,9 +90,9 @@ def gradient_descent(X, y, theta, alpha, num_iters):
     - theta: The learned parameters of your model.
     - J_history: the loss value for every iteration.
     """
-    
-    theta = theta.copy() # optional: theta outside the function will not change
-    J_history = [] # Use a python list to save the cost value in every iteration
+
+    theta = theta.copy()  # optional: theta outside the function will not change
+    J_history = []  # Use a python list to save the cost value in every iteration
     ###########################################################################
     # TODO: Implement the gradient descent optimization algorithm.            #
     ###########################################################################
@@ -103,6 +101,7 @@ def gradient_descent(X, y, theta, alpha, num_iters):
     #                             END OF YOUR CODE                            #
     ###########################################################################
     return theta, J_history
+
 
 def compute_pinv(X, y):
     """
@@ -120,7 +119,7 @@ def compute_pinv(X, y):
     Returns:
     - pinv_theta: The optimal parameters of your model.
     """
-    
+
     pinv_theta = []
     ###########################################################################
     # TODO: Implement the pseudoinverse algorithm.                            #
@@ -130,6 +129,7 @@ def compute_pinv(X, y):
     #                             END OF YOUR CODE                            #
     ###########################################################################
     return pinv_theta
+
 
 def efficient_gradient_descent(X, y, theta, alpha, num_iters):
     """
@@ -149,9 +149,9 @@ def efficient_gradient_descent(X, y, theta, alpha, num_iters):
     - theta: The learned parameters of your model.
     - J_history: the loss value for every iteration.
     """
-    
-    theta = theta.copy() # optional: theta outside the function will not change
-    J_history = [] # Use a python list to save the cost value in every iteration
+
+    theta = theta.copy()  # optional: theta outside the function will not change
+    J_history = []  # Use a python list to save the cost value in every iteration
     ###########################################################################
     # TODO: Implement the efficient gradient descent optimization algorithm.  #
     ###########################################################################
@@ -160,6 +160,7 @@ def efficient_gradient_descent(X, y, theta, alpha, num_iters):
     #                             END OF YOUR CODE                            #
     ###########################################################################
     return theta, J_history
+
 
 def find_best_alpha(X_train, y_train, X_val, y_val, iterations):
     """
@@ -176,9 +177,9 @@ def find_best_alpha(X_train, y_train, X_val, y_val, iterations):
     Returns:
     - alpha_dict: A python dictionary - {alpha_value : validation_loss}
     """
-    
+
     alphas = [0.00001, 0.00003, 0.0001, 0.0003, 0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1, 2, 3]
-    alpha_dict = {} # {alpha_value: validation_loss}
+    alpha_dict = {}  # {alpha_value: validation_loss}
     ###########################################################################
     # TODO: Implement the function and find the best alpha value.             #
     ###########################################################################
@@ -187,6 +188,7 @@ def find_best_alpha(X_train, y_train, X_val, y_val, iterations):
     #                             END OF YOUR CODE                            #
     ###########################################################################
     return alpha_dict
+
 
 def forward_feature_selection(X_train, y_train, X_val, y_val, best_alpha, iterations):
     """
@@ -216,6 +218,7 @@ def forward_feature_selection(X_train, y_train, X_val, y_val, best_alpha, iterat
     ###########################################################################
     return selected_features
 
+
 def create_square_features(df):
     """
     Create square features for the input data.
@@ -237,3 +240,21 @@ def create_square_features(df):
     #                             END OF YOUR CODE                            #
     ###########################################################################
     return df_poly
+
+#######################
+# Auxiliary functions #
+#######################
+def __normalize_vector(method="mean"):
+    """
+    Feature scaling is a method used to normalize the range of independent variables or features of data.
+
+    Input:
+    - method: [default is Mean normalization] The scaling method to use.
+
+    Returns:
+    - A function that apply the scaling method on a given vector (numpy array like)
+    """
+    methods = {
+        "mean": lambda v: np.divide(v - v.mean(axis=0), (v.max(axis=0) - v.min(axis=0)))
+               }
+    return methods.get(method)
