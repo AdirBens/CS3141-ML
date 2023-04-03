@@ -153,16 +153,14 @@ def find_best_alpha(X_train, y_train, X_val, y_val, iterations):
     Returns:
     - alpha_dict: A python dictionary - {alpha_value : validation_loss}
     """
-
     alphas = [0.00001, 0.00003, 0.0001, 0.0003, 0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1, 2, 3]
-    alpha_dict = {}  # {alpha_value: validation_loss}
-    ###########################################################################
-    # TODO: Implement the function and find the best alpha value.             #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    alpha_dict = {}
+    initial_theta = __guess_init_theta(X_train.shape[1])
+
+    for alpha in alphas:
+        theta, _ = efficient_gradient_descent(X_train, y_train, initial_theta, alpha, iterations)
+        alpha_dict[alpha] = compute_cost(X_val, y_val, theta)
+
     return alpha_dict
 
 
@@ -217,6 +215,7 @@ def create_square_features(df):
     ###########################################################################
     return df_poly
 
+
 #######################
 # Auxiliary functions #
 #######################
@@ -232,5 +231,18 @@ def __normalize_vector(method="mean"):
     """
     methods = {
         "mean": lambda v: np.divide(v - v.mean(axis=0), (v.max(axis=0) - v.min(axis=0)))
-               }
+    }
     return methods.get(method)
+
+
+def __guess_init_theta(shape):
+    """
+    Guess initial value for theta vector
+    Input:
+    - shape: the size of the vector
+
+    Returns:
+    - vector of size (shape, ) with guessed theta values
+    """
+    np.random.seed(42)
+    return np.random.random((shape,))
