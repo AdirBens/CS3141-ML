@@ -6,6 +6,8 @@
 import numpy as np
 import pandas as pd
 
+from itertools import combinations
+
 
 def preprocess(X, y):
     """
@@ -222,9 +224,8 @@ def create_square_features(df):
     df_poly = df.copy()
 
     # create all combination between two different columns
-    df_poly = pd.concat([df_poly, pd.DataFrame({f"{col_a}*{col_b}": df[col_a] * df[col_b]
-                                                for i, col_a in enumerate(df.columns)
-                                                for col_b in df.columns[i:] if col_a != col_b})], axis=1)
+    df_poly = pd.concat([df_poly, pd.DataFrame({f"{c_a} * {c_b}": df[c_a] * df[c_b]
+                                                for c_a, c_b in combinations(df.columns, 2)})], axis=1)
 
     # create self columns product
     df_poly = pd.concat([df_poly, df.copy().add_suffix("^2") ** 2], axis=1)
