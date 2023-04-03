@@ -121,6 +121,7 @@ def efficient_gradient_descent(X, y, theta, alpha, num_iters, threshold=1e-8):
     - theta: The parameters (weights) of the model being learned.
     - alpha: The learning rate of your model.
     - num_iters: The number of updates performed.
+    - threshold: The value of improvement between iterations to stop at.
 
     Returns:
     - theta: The learned parameters of your model.
@@ -164,7 +165,7 @@ def find_best_alpha(X_train, y_train, X_val, y_val, iterations):
     return alpha_dict
 
 
-def forward_feature_selection(X_train, y_train, X_val, y_val, best_alpha, iterations):
+def forward_feature_selection(X_train, y_train, X_val, y_val, best_alpha, iterations, n_selected=5):
     """
     Forward feature selection is a greedy, iterative algorithm used to 
     select the most relevant features for a predictive model. The objective 
@@ -178,18 +179,32 @@ def forward_feature_selection(X_train, y_train, X_val, y_val, best_alpha, iterat
     - X_train, y_train, X_val, y_val: the input data without bias trick
     - best_alpha: the best learning rate previously obtained
     - iterations: maximum number of iterations for gradient descent
+    - n_selected: the desired number of selected features
 
     Returns:
     - selected_features: A list of selected top 5 feature indices
     """
-    selected_features = []
-    #####c######################################################################
-    # TODO: Implement the function and find the best alpha value.             #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    X_train, X_val = apply_bias_trick(X_train), apply_bias_trick(X_val)
+
+    selected_features = [0]  # insert bias column to selected features
+    candidates_features = list(range(1, X_train.shape[1]))
+
+    for _ in range(n_selected):
+        J_history = dict()
+
+        for feature in candidates_features:
+            selected_features.append(feature)
+            initial_theta = __guess_init_theta(X_train[:, selected_features].shape[1])
+            theta, _ = efficient_gradient_descent(X_train[:, selected_features], y_train,
+                                                  initial_theta, best_alpha, iterations)
+            J_history[feature] = compute_cost(X_val[:, selected_features], y_val, theta)
+            selected_features.pop()
+
+        best_feature = min(J_history, key=J_history.get)
+        candidates_features.remove(best_feature)
+        selected_features.append(best_feature)
+
+    selected_features = [i - 1 for i in selected_features if i != 0]  # remove bias 'feature' and fix indexes.
     return selected_features
 
 
