@@ -123,7 +123,7 @@ def efficient_gradient_descent(X, y, theta, alpha, num_iters, threshold=1e-8):
     - theta: The parameters (weights) of the model being learned.
     - alpha: The learning rate of your model.
     - num_iters: The number of updates performed.
-    - threshold: The value of improvement between iterations to stop at.
+    - threshold: The value of improvement between iterations to stop at. [default = 1e-8]
 
     Returns:
     - theta: The learned parameters of your model.
@@ -181,7 +181,7 @@ def forward_feature_selection(X_train, y_train, X_val, y_val, best_alpha, iterat
     - X_train, y_train, X_val, y_val: the input data without bias trick
     - best_alpha: the best learning rate previously obtained
     - iterations: maximum number of iterations for gradient descent
-    - n_selected: the desired number of selected features
+    - n_selected: the desired number of selected features. [default = 5]
 
     Returns:
     - selected_features: A list of selected top 5 feature indices
@@ -224,7 +224,7 @@ def create_square_features(df):
     df_poly = df.copy()
 
     # create all combination between two different columns
-    df_poly = pd.concat([df_poly, pd.DataFrame({f"{c_a} * {c_b}": df[c_a] * df[c_b]
+    df_poly = pd.concat([df_poly, pd.DataFrame({f"{c_a}*{c_b}": df[c_a] * df[c_b]
                                                 for c_a, c_b in combinations(df.columns, 2)})], axis=1)
 
     # create self columns product
