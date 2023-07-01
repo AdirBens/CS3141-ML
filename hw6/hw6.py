@@ -1,6 +1,72 @@
 import numpy as np
 
+# ====================================================
+#            Unsupervised Learning: KMeans
+#     --------------------------------------------
+#  benshimol.adir@post.runi.ac.il | 315388850
+#  uri.meir@post.runi.ac.il | 206585242
+# ====================================================
 
+
+# KMeans Variants:
+# ==================
+def kmeans(X, k, p, max_iter=100):
+    """
+    Inputs:
+    - X: a single image of shape (num_pixels, 3).
+    - k: number of centroids.
+    - p: the parameter governing the distance measure.
+    - max_iter: the maximum number of iterations to perform.
+
+    Outputs:
+    - The calculated centroids as a numpy array.
+    - The final assignment of all RGB points to the closest centroids as a numpy array.
+    """
+    centroids = get_random_centroids(X, k)
+    centroids, classes = _base_kmeans(X, centroids, p, max_iter)
+
+    return centroids, classes
+
+
+def kmeans_pp(X, k, p, max_iter=100):
+    """
+    Your implementation of the kmeans++ algorithm.
+    Inputs:
+    - X: a single image of shape (num_pixels, 3).
+    - k: number of centroids.
+    - p: the parameter governing the distance measure.
+    - max_iter: the maximum number of iterations to perform.
+
+    Outputs:
+    - The calculated centroids as a numpy array.
+    - The final assignment of all RGB points to the closest centroids as a numpy array.
+    """
+    centroids = get_pp_heuristic_centroids(X, k, p)
+    centroids, classes = _base_kmeans(X, centroids, p, max_iter)
+
+    return centroids, classes
+
+
+def _base_kmeans(X, centroids, p, max_iter):
+    """
+    Perform the base k-means algorithm.
+    """
+    EQUALITY_TOLERANCE = 2
+    classes = []
+
+    for _ in range(max_iter):
+        prev_centroids = centroids.copy()
+        classes = _assign_to_classes(X, centroids, p)
+        centroids = _recompute_centroids(X, classes, prev_centroids)
+
+        if np.allclose(centroids, prev_centroids, rtol=0, atol=EQUALITY_TOLERANCE):
+            break
+
+    return centroids, classes
+
+
+# Centroids Selection:
+# ====================
 def get_random_centroids(X, k):
     """
     Each centroid is a point in RGB space (color) in the image.
@@ -15,6 +81,23 @@ def get_random_centroids(X, k):
     return np.asarray(centroids).astype(np.float64)
 
 
+def get_pp_heuristic_centroids(X, k, p):
+    """
+    Generate the initial centroids using the kmeans++ algorithm.
+    """
+    initial_centroid, X_rest = _split_chosen_point_from_dataset(X)
+    centroids = [initial_centroid]
+
+    for _ in range(1, k):
+        weight = _get_weight_probability(X_rest, centroids, p)
+        new_centroid, X_rest = _split_chosen_point_from_dataset(X_rest, distribution=weight)
+        centroids.append(new_centroid)
+
+    return np.asarray(centroids).astype(np.float64)
+
+
+#  Metrics:
+# ====================
 def lp_distance(X, centroids, p=2):
     """
     Inputs:
@@ -33,6 +116,57 @@ def lp_distance(X, centroids, p=2):
     return np.asarray(distances)
 
 
+def inertia_metric(X, centroids, p=2):
+    """
+    Calculate the inertia metric.
+    Inertia is the sum of the squared distances between each training instance and its closest centroid.
+    """
+    return np.sum(np.min(lp_distance(X, centroids, p), axis=0) ** 2)
+
+
+#  Comparison Test:
+# ====================
+def run_experiment(algorithm, n_rounds, X, k, p, max_iter=100):
+    """
+    Run an experiment with the given algorithm and parameters.
+    """
+    comm_inertia = 0
+
+    for _ in range(n_rounds):
+        centroids, _ = algorithm(X, k, p, max_iter)
+        comm_inertia += inertia_metric(X, centroids, p)
+
+    return np.mean(comm_inertia)
+
+
+def performance_comparison(dataset, p, kmeans=kmeans, kmeans_pp=kmeans_pp, n_rounds=10, k_range=range(4, 8),
+                           max_iter=100, debug=False):
+    """
+    Compare the performance of the k-means and k-means++ algorithms on the given dataset.
+    """
+    # kmeans_results = [run_experiment(algorithm=kmeans, n_rounds=n_rounds, X=dataset, p=p, k=k)
+    #                   for k in k_range]
+    #
+    # kmeans_pp_results = [run_experiment(algorithm=kmeans_pp, n_rounds=n_rounds, X=dataset, p=p, k=k)
+    #                      for k in k_range]
+    kmeans_results, kmeans_pp_results = [], []
+
+    for k in k_range:
+        if debug:
+            print(f"test for k = {k}")
+            print(f"  [o] test for K-Means")
+        kmeans_results.append(
+            run_experiment(algorithm=kmeans, n_rounds=n_rounds, X=dataset, p=p, k=k, max_iter=max_iter))
+        if debug:
+            print(f"  [+] test for K-Means++")
+        kmeans_pp_results.append(
+            run_experiment(algorithm=kmeans_pp, n_rounds=n_rounds, X=dataset, p=p, k=k, max_iter=max_iter))
+
+    return kmeans_results, kmeans_pp_results, list(k_range)
+
+
+#  Auxiliary Functions:
+# =======================
 def _assign_to_classes(X, centroids, p=2):
     """
     Assign each point in the dataset to the closest centroid.
@@ -80,117 +214,3 @@ def _split_chosen_point_from_dataset(dataset, distribution=None):
     point_index = _choose_random_data_point_index(dataset, distribution)
 
     return dataset[point_index], np.delete(dataset, point_index, axis=0)
-
-
-def get_pp_heuristic_centroids(X, k, p):
-    """
-    Generate the initial centroids using the kmeans++ algorithm.
-    """
-    initial_centroid, X_rest = _split_chosen_point_from_dataset(X)
-    centroids = [initial_centroid]
-
-    for _ in range(1, k):
-        weight = _get_weight_probability(X_rest, centroids, p)
-        new_centroid, X_rest = _split_chosen_point_from_dataset(X_rest, distribution=weight)
-        centroids.append(new_centroid)
-
-    return np.asarray(centroids).astype(np.float64)
-
-
-def _base_kmeans(X, centroids, p, max_iter):
-    """
-    Perform the base k-means algorithm.
-    """
-    EQUALITY_TOLERANCE = 3
-    classes = []
-
-    for _ in range(max_iter):
-        prev_centroids = centroids.copy()
-        classes = _assign_to_classes(X, centroids, p)
-        centroids = _recompute_centroids(X, classes, prev_centroids)
-
-        if np.allclose(centroids, prev_centroids, rtol=0, atol=EQUALITY_TOLERANCE):
-            break
-
-    return centroids, classes
-
-
-def kmeans(X, k, p, max_iter=100):
-    """
-    Inputs:
-    - X: a single image of shape (num_pixels, 3).
-    - k: number of centroids.
-    - p: the parameter governing the distance measure.
-    - max_iter: the maximum number of iterations to perform.
-
-    Outputs:
-    - The calculated centroids as a numpy array.
-    - The final assignment of all RGB points to the closest centroids as a numpy array.
-    """
-    centroids = get_random_centroids(X, k)
-    centroids, classes = _base_kmeans(X, centroids, p, max_iter)
-
-    return centroids, classes
-
-
-def kmeans_pp(X, k, p, max_iter=100):
-    """
-    Your implementation of the kmeans++ algorithm.
-    Inputs:
-    - X: a single image of shape (num_pixels, 3).
-    - k: number of centroids.
-    - p: the parameter governing the distance measure.
-    - max_iter: the maximum number of iterations to perform.
-
-    Outputs:
-    - The calculated centroids as a numpy array.
-    - The final assignment of all RGB points to the closest centroids as a numpy array.
-    """
-    centroids = get_pp_heuristic_centroids(X, k, p)
-    centroids, classes = _base_kmeans(X, centroids, p, max_iter)
-
-    return centroids, classes
-
-
-def run_experiment(algorithm, n_rounds, X, k, p, max_iter=100):
-    """
-    Run an experiment with the given algorithm and parameters.
-    """
-    comm_inertia = 0
-
-    for _ in range(n_rounds):
-        centroids, _ = algorithm(X, k, p, max_iter)
-        comm_inertia += inertia_metric(X, centroids, p)
-
-    return np.mean(comm_inertia)
-
-
-def inertia_metric(X, centroids, p=2):
-    """
-    Calculate the inertia metric.
-    Inertia is the sum of the squared distances between each training instance and its closest centroid.
-    """
-    return np.sum(np.min(lp_distance(X, centroids, p), axis=0) ** 2)
-
-
-def performance_comparison(dataset, p, kmeans=kmeans, kmeans_pp=kmeans_pp, n_rounds=10, k_range=range(4, 8), max_iter=100, debug=False):
-    """
-    Compare the performance of the k-means and k-means++ algorithms on the given dataset.
-    """
-    # kmeans_results = [run_experiment(algorithm=kmeans, n_rounds=n_rounds, X=dataset, p=p, k=k)
-    #                   for k in k_range]
-    #
-    # kmeans_pp_results = [run_experiment(algorithm=kmeans_pp, n_rounds=n_rounds, X=dataset, p=p, k=k)
-    #                      for k in k_range]
-    kmeans_results, kmeans_pp_results = [], []
-
-    for k in k_range:
-        if debug:
-            print(f"test for k = {k}")
-            print(f"  [o] test for K-Means")
-        kmeans_results.append(run_experiment(algorithm=kmeans, n_rounds=n_rounds, X=dataset, p=p, k=k, max_iter=max_iter))
-        if debug:
-            print(f"  [+] test for K-Means++")
-        kmeans_pp_results.append(run_experiment(algorithm=kmeans_pp, n_rounds=n_rounds, X=dataset, p=p, k=k, max_iter=max_iter))
-
-    return kmeans_results, kmeans_pp_results, list(k_range)
